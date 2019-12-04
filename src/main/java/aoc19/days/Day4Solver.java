@@ -1,4 +1,4 @@
-package aoc19.day4;
+package aoc19.days;
 
 public class Day4Solver {
 	public static void main(String[] args) {

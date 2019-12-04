@@ -1,5 +1,6 @@
-package aoc19.day1;
+package aoc19.days;
 
+import aoc19.days.Day1Solver;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

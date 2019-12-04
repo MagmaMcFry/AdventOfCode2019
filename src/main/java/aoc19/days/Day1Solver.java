@@ -1,4 +1,4 @@
-package aoc19.day1;
+package aoc19.days;
 
 import aoc19.util.FileReader;
 

@@ -1,6 +1,6 @@
-package aoc19.day3;
+package aoc19.days;
 
-import aoc19.Intcode;
+import aoc19.days.Day3Solver;
 import aoc19.util.I2;
 import org.junit.jupiter.api.Test;
 
