@@ -20,7 +20,7 @@ public class Day2Solver {
 		int[] code = getCode();
 		code[1] = 12;
 		code[2] = 2;
-		int result = Intcode.runCode(code);
+		int result = Intcode.runAndReturnFirstElement(code);
 		System.out.println("A: Final result: " + result);
 	}
 
@@ -32,7 +32,7 @@ public class Day2Solver {
 				System.arraycopy(code, 0, testCode, 0, code.length);
 				testCode[1] = noun;
 				testCode[2] = verb;
-				int result = Intcode.runCode(testCode);
+				int result = Intcode.runAndReturnFirstElement(testCode);
 				if (result == 19690720) {
 					System.out.println(String.format(Locale.ROOT, "B: Required parameters: %02d%02d", noun, verb));
 				}
