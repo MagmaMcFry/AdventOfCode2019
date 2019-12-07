@@ -17,7 +17,7 @@ public class Day5Solver {
 
 	private static void solvePart1() {
 		Intcode code = new Intcode(getCode());
-		code.setInputMethod(()->1);
+		code.setInputConstant(1);
 		int[] diagCode = code.setOutputCollector();
 		code.runCode();
 		System.out.println("Diag code for system 1: " + diagCode[0]);
@@ -25,7 +25,7 @@ public class Day5Solver {
 
 	private static void solvePart2() {
 		Intcode code = new Intcode(getCode());
-		code.setInputMethod(()->5);
+		code.setInputConstant(5);
 		int[] diagCode = code.setOutputCollector();
 		code.runCode();
 		System.out.println("Diag code for system 5: " + diagCode[0]);

@@ -18,12 +18,13 @@ public class Day6Solver {
 	}
 
 
-	public static int countOrbits(Map<String, String> parentMap) {
-		int count = 0;
-		for (String s : parentMap.keySet()) {
-			count += getHeight(parentMap, s);
+	public static Map<String, String> computeParentMap(List<String> directOrbitStrings) {
+		Map<String, String> parentMap = new HashMap<>();
+		for (String s : directOrbitStrings) {
+			String[] parts = s.split("\\)");
+			parentMap.put(parts[1], parts[0]);
 		}
-		return count;
+		return parentMap;
 	}
 
 	public static int getHeight(Map<String, String> parentMap, String pos) {
@@ -36,13 +37,12 @@ public class Day6Solver {
 		return height;
 	}
 
-	public static Map<String, String> computeParentMap(List<String> directOrbitStrings) {
-		Map<String, String> parentMap = new HashMap<>();
-		for (String s : directOrbitStrings) {
-			String[] parts = s.split("\\)");
-			parentMap.put(parts[1], parts[0]);
+	public static int countOrbits(Map<String, String> parentMap) {
+		int count = 0;
+		for (String s : parentMap.keySet()) {
+			count += getHeight(parentMap, s);
 		}
-		return parentMap;
+		return count;
 	}
 
 	public static int getDistance(Map<String, String> parentMap, String pos1, String pos2) {

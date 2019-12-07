@@ -3,13 +3,14 @@ package aoc19;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
-import java.util.function.IntSupplier;
 
 public class Intcode {
 	private final int[] code;
 	private int pos;
-	private IntSupplier input;
+	private IntcodeInput input;
 	private IntConsumer output;
+	private boolean done = false;
+	private boolean broken = false;
 
 	public Intcode(int[] code) {
 		this.code = code;
@@ -17,7 +18,7 @@ public class Intcode {
 	}
 
 	public void runCode() {
-		while (true) {
+		LOOP: while (true) {
 			switch (code[pos]) {
 				// ADD
 				case 1:
@@ -41,7 +42,14 @@ public class Intcode {
 
 				// IN
 				case 3:
-					code[code[pos+1]] = nextInput(); pos += 2; break;
+					if (input.hasNextInput()) {
+						code[code[pos+1]] = input.getNextInput();
+						pos += 2;
+						break;
+					} else {
+						// Waiting on input
+						break LOOP;
+					}
 
 				// OUT
 				case 4:
@@ -121,21 +129,41 @@ public class Intcode {
 				case 1008: code[code[pos+3]] = (code[code[pos+1]] == code[pos+2]) ? 1 : 0; pos += 4;  break;
 				case 1108: code[code[pos+3]] = (code[pos+1] == code[pos+2]) ? 1 : 0; pos += 4;  break;
 
-				case 99: return;
-				default: nextOutput(-999); return;
+				// HALT
+				case 99: done = true; break LOOP;
+
+				// HCF
+				default: nextOutput(-999); broken = true; done = true; break LOOP;
 			}
 		}
 	}
 
-	public void setInputMethod(IntSupplier input) {
+	public void setInputMethod(IntcodeInput input) {
 		this.input = input;
 	}
 
+	public void setInputConstant(int constant) {
+		this.input = new IntcodeInput() {
+			@Override
+			public boolean hasNextInput() {
+				return true;
+			}
+			@Override
+			public int getNextInput() {
+				return constant;
+			}
+		};
+	}
+
 	public void setInputArray(int[] list) {
-		this.input = new IntSupplier() {
+		this.input = new IntcodeInput() {
 			int inputPos = 0;
 			@Override
-			public int getAsInt() {
+			public boolean hasNextInput() {
+				return inputPos < list.length;
+			}
+			@Override
+			public int getNextInput() {
 				return list[inputPos++];
 			}
 		};
@@ -157,12 +185,16 @@ public class Intcode {
 		return out;
 	}
 
-	public int getPos() {
-		return pos;
+	public boolean isDone() {
+		return done;
 	}
 
-	private int nextInput() {
-		return input.getAsInt();
+	public boolean isBroken() {
+		return broken;
+	}
+
+	public int getPos() {
+		return pos;
 	}
 
 	private void nextOutput(int val) {
@@ -181,5 +213,10 @@ public class Intcode {
 		int[] output = intcode.setOutputCollector();
 		intcode.runCode();
 		return output[0];
+	}
+
+	public interface IntcodeInput {
+		boolean hasNextInput();
+		int getNextInput();
 	}
 }
