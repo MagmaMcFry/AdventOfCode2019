@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class Day6SolverTest {
 
 	private Map<String, String> getExample() {
-		List<String> directOrbitStrings = Arrays.asList("COM)B", "B)C", "C)D", "D)E", "E)F", "B)G", "G)H", "D)I", "E)J", "J)K", "K)L", "K)YOU", "I)SAN");
+		List<String> directOrbitStrings = Arrays.asList("COM)B", "B)C", "C)D", "D)E", "E)F", "B)G", "G)H", "D)I", "E)J", "J)K", "K)L");
 		Map<String, String> parentMap = Day6Solver.computeParentMap(directOrbitStrings);
 		return parentMap;
 	}
@@ -36,7 +36,7 @@ public class Day6SolverTest {
 		assertEquals(0, Day6Solver.getDistance(parentMap, "D", "D"));
 		assertEquals(1, Day6Solver.getDistance(parentMap, "D", "E"));
 		assertEquals(2, Day6Solver.getDistance(parentMap, "E", "I"));
-		assertEquals(4, Day6Solver.getDistance(parentMap, "D", "YOU"));
+		assertEquals(3, Day6Solver.getDistance(parentMap, "D", "K"));
 		assertEquals(7, Day6Solver.getDistance(parentMap, "COM", "L"));
 	}
 }
