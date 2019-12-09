@@ -13,7 +13,7 @@ public class Day7Solver {
 	}
 
 	private static int[] getCode() {
-		return Arrays.stream(FileReader.readLines("/day7/code.txt").get(0).split(",")).mapToInt(Integer::valueOf).toArray();
+		return Arrays.stream(FileReader.readLines("/day7/code.txt").get(0).split(",")).mapToInt(Integer::parseInt).toArray();
 	}
 
 	static void solvePart1() {
