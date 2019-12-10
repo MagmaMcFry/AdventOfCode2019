@@ -62,13 +62,13 @@ public class Longcode {
 						break LOOP;
 					}
 
-					// OUT
+				// OUT
 				case 4:
 					nextOutput(getCode(op1)); pos += 2; break;
 
-				// JEZ
-				case 5: if (getCode(op1) != 0) { pos = getCode(op2); } else { pos += 3; } break;
 				// JNZ
+				case 5: if (getCode(op1) != 0) { pos = getCode(op2); } else { pos += 3; } break;
+				// JEZ
 				case 6: if (getCode(op1) == 0) { pos = getCode(op2); } else { pos += 3; } break;
 
 				// TLT

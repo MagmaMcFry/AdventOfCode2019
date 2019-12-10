@@ -11,15 +11,11 @@ public class I2 {
 		this.y = y;
 	}
 
-	public static I2 p(int x, int y) {
-		return new I2(x,y);
-	}
-
-	public static I2[] a(Integer... args) {
+	public static I2[] array(Integer... args) {
 		if (args.length % 2 != 0) throw new IllegalArgumentException("Length of arg list must be divisible by 2");
 		I2[] result = new I2[args.length/2];
 		for (int i = 0; i < result.length; ++i) {
-			result[i] = I2.p(args[2*i], args[2*i+1]);
+			result[i] = new I2(args[2*i], args[2*i+1]);
 		}
 		return result;
 	}
@@ -28,9 +24,17 @@ public class I2 {
 		if (args.length % 2 != 0) throw new IllegalArgumentException("Length of arg list must be divisible by 2");
 		List<I2> result = new ArrayList<>();
 		for (int i = 0; i < args.length; i+=2) {
-			result.add(I2.p(args[i], args[i+1]));
+			result.add(new I2(args[i], args[i+1]));
 		}
 		return result;
+	}
+
+	/**
+	 * Direction from p1 to p2, represented as an I2 with coprime entries
+	 */
+	public static I2 dir(I2 p1, I2 p2) {
+		int gcd = gcd(p2.x-p1.x, p2.y-p1.y);
+		return new I2((p2.x-p1.x)/gcd, (p2.y-p1.y)/gcd);
 	}
 
 	@Override
@@ -60,5 +64,14 @@ public class I2 {
 
 	public int d1(I2 o) {
 		return Math.abs(x-o.x) + Math.abs(y-o.y);
+	}
+
+	private static int gcd(int x, int y) {
+		x = Math.abs(x);
+		y = Math.abs(y);
+		if (x == 0 && y == 0) return 1; // Let's not divide by 0
+		if (y == 0) return x;
+		if (x == 0) return y;
+		return gcd(y, x%y);
 	}
 }

@@ -8,7 +8,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Day6SolverTest {
+class Day6SolverTest {
 
 	private Map<String, String> getExample() {
 		List<String> directOrbitStrings = Arrays.asList("COM)B", "B)C", "C)D", "D)E", "E)F", "B)G", "G)H", "D)I", "E)J", "J)K", "K)L");

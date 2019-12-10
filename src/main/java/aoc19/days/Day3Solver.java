@@ -21,7 +21,7 @@ public class Day3Solver {
 		I2[] result = new I2[routes.length+1];
 		int x = 0, y = 0;
 		int pos = 0;
-		result[pos++] = I2.p(0,0);
+		result[pos++] = new I2(0,0);
 		for (String route : routes) {
 			String dir = route.substring(0, 1);
 			int len = Integer.valueOf(route.substring(1));
@@ -31,7 +31,7 @@ public class Day3Solver {
 				case "L": x -= len; break;
 				case "R": x += len; break;
 			}
-			result[pos++] = I2.p(x,y);
+			result[pos++] = new I2(x,y);
 		}
 		return result;
 	}
@@ -39,7 +39,7 @@ public class Day3Solver {
 	static I2 getNearestWireCrossing(String wire1String, String wire2String) {
 		I2[] wire1Coords = getWireCoords(wire1String);
 		I2[] wire2Coords = getWireCoords(wire2String);
-		I2 optimalCrossing = I2.p(0,0);
+		I2 optimalCrossing = new I2(0,0);
 		for (int i1 = 1; i1 < wire1Coords.length; ++i1) {
 			for (int i2 = 1; i2 < wire2Coords.length; ++i2) {
 				I2 crossing = getCrossing(wire1Coords[i1-1], wire1Coords[i1], wire2Coords[i2-1], wire2Coords[i2]);
@@ -88,7 +88,7 @@ public class Day3Solver {
 		}
 		if ((b1.x < b2.x) ^ (a1.y < a2.y)) return null;
 		if (a1.x <= b2.x && b1.x <= a2.x && a1.y <= b2.y && b1.y <= a2.y) {
-			return I2.p(Math.max(a1.x,b1.x), Math.max(a1.y,b1.y));
+			return new I2(Math.max(a1.x,b1.x), Math.max(a1.y,b1.y));
 		} else {
 			return null;
 		}

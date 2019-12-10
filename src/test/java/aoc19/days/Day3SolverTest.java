@@ -1,6 +1,5 @@
 package aoc19.days;
 
-import aoc19.days.Day3Solver;
 import aoc19.util.I2;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +9,7 @@ class Day3SolverTest {
 
 	@Test
 	void getWireCoordsTest() {
-		assertArrayEquals(I2.a(0, 0, 0, 4, 3, 4, 3, 2, -14, 2), Day3Solver.getWireCoords("U4,R3,D2,L17"));
+		assertArrayEquals(I2.array(0, 0, 0, 4, 3, 4, 3, 2, -14, 2), Day3Solver.getWireCoords("U4,R3,D2,L17"));
 
 	}
 
