@@ -1,6 +1,5 @@
-package aoc19.days;
+package aoc19;
 
-import aoc19.Longcode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
