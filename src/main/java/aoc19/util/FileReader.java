@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,4 +32,10 @@ public class FileReader {
 	public static List<Integer> readListOfInts(String resourcePath) {
 		return readLines(resourcePath).stream().map(Integer::valueOf).collect(Collectors.toList());
 	}
+
+
+	public static long[] readLongcode(String resourcePath) {
+		return Arrays.stream(readLines(resourcePath).get(0).split(",")).mapToLong(Long::parseLong).toArray();
+	}
+
 }

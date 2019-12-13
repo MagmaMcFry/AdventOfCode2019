@@ -2,6 +2,7 @@ package aoc19;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
 public class Longcode {
@@ -9,7 +10,9 @@ public class Longcode {
 	private long[] code;
 	private long pos = 0, base = 0;
 	private long runtime = 0;
-	private LongcodeInput input;
+	private LongcodeInput input = new LongcodeInput() {
+		@Override public boolean hasNextInput() { return false; } @Override public long getNextInput() { return 0; }
+	};
 	private LongConsumer output;
 	private boolean done = false;
 	private boolean broken = false;
@@ -160,6 +163,36 @@ public class Longcode {
 		long[] out = new long[1];
 		this.output = (i) -> out[0] = i;
 		return out;
+	}
+
+	public void setOutputFixedLongBuffer(int bufferSize, Consumer<long[]> bufferConsumer) {
+		setOutputMethod(new LongConsumer() {
+			long[] buffer = new long[bufferSize];
+			int bufferPos = 0;
+			@Override
+			public void accept(long value) {
+				buffer[bufferPos++] = value;
+				if (bufferPos == bufferSize) {
+					bufferPos = 0;
+					bufferConsumer.accept(buffer);
+				}
+			}
+		});
+	}
+
+	public void setOutputFixedIntBuffer(int bufferSize, Consumer<int[]> bufferConsumer) {
+		setOutputMethod(new LongConsumer() {
+			int[] buffer = new int[bufferSize];
+			int bufferPos = 0;
+			@Override
+			public void accept(long value) {
+				buffer[bufferPos++] = (int)value;
+				if (bufferPos == bufferSize) {
+					bufferPos = 0;
+					bufferConsumer.accept(buffer);
+				}
+			}
+		});
 	}
 
 	public boolean isDone() {
