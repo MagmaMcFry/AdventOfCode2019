@@ -106,7 +106,6 @@ public class Day15Solver {
 							// Oxygen system
 							oxygenX = currentX;
 							oxygenY = currentY;
-							System.out.println("Oxygen found at (" + oxygenX + ", " + oxygenY + ")");
 						}
 						continue EXPLORING;
 					}
