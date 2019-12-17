@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
 public class Longcode {
-	private static final long MEM_LIMIT = 10_000_000;
+	private static final int MEM_LIMIT = 10_000_000;
 	private long[] code;
 	private long pos = 0, base = 0;
 	private long runtime = 0;
@@ -97,25 +97,27 @@ public class Longcode {
 	}
 
 	private long getCode(long addr) {
-		if (addr < 0) throw new ArrayIndexOutOfBoundsException("Code broke, negative read");
-		if (addr >= MEM_LIMIT) throw new ArrayIndexOutOfBoundsException("Code broke, memory limit reached at " + addr);
-		if (code.length <= addr) {
-			long[] newCode = new long[2*(int)addr];
+		int iaddr = (int) addr;
+		if (iaddr < 0) throw new ArrayIndexOutOfBoundsException("Code broke, negative read");
+		if (iaddr >= MEM_LIMIT) throw new ArrayIndexOutOfBoundsException("Code broke, memory limit reached at " + addr);
+		if (code.length <= iaddr) {
+			long[] newCode = new long[2*iaddr];
 			System.arraycopy(code, 0, newCode, 0, code.length);
 			code = newCode;
 		}
-		return code[(int)addr];
+		return code[iaddr];
 	}
 
 	private void setCode(long addr, long val) {
-		if (addr < 0) throw new ArrayIndexOutOfBoundsException("Code broke, negative write");
-		if (addr >= MEM_LIMIT) throw new ArrayIndexOutOfBoundsException("Code broke, memory limit reached at " + addr);
-		if (code.length < addr) {
-			long[] newCode = new long[2*(int)addr];
+		int iaddr = (int) addr;
+		if (iaddr < 0) throw new ArrayIndexOutOfBoundsException("Code broke, negative write");
+		if (iaddr >= MEM_LIMIT) throw new ArrayIndexOutOfBoundsException("Code broke, memory limit reached at " + addr);
+		if (code.length <= iaddr) {
+			long[] newCode = new long[2*iaddr];
 			System.arraycopy(code, 0, newCode, 0, code.length);
 			code = newCode;
 		}
-		code[(int)addr] = val;
+		code[iaddr] = val;
 	}
 
 	public void setInputMethod(LongcodeInput input) {
