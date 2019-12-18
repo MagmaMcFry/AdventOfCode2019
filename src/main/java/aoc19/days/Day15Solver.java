@@ -1,6 +1,7 @@
 package aoc19.days;
 
 import aoc19.Longcode;
+import aoc19.util.Direction;
 import aoc19.util.FileReader;
 import aoc19.util.I2;
 import aoc19.util.I2Grid;
@@ -30,34 +31,6 @@ public class Day15Solver {
 		RepairDroid droid = new RepairDroid();
 		int dist = droid.findOxygenFloodTime();
 		System.out.println("Oxygen flood time: " + dist);
-	}
-
-	enum Direction {
-		NORTH(0,-1,1), SOUTH(0,1,2), WEST(-1,0,3), EAST(1,0,4);
-		final int dx, dy;
-		final int symbol;
-		Direction(int dx, int dy, int symbol) {
-			this.dx = dx; this.dy = dy; this.symbol = symbol;
-		}
-		static Direction get(int symbol) {
-			switch(symbol) {
-				case 1: return NORTH;
-				case 2: return SOUTH;
-				case 3: return WEST;
-				case 4: return EAST;
-				default: throw new IllegalArgumentException();
-			}
-		}
-
-		Direction opposite() {
-			switch(this) {
-				case NORTH: return SOUTH;
-				case SOUTH: return NORTH;
-				case WEST: return EAST;
-				case EAST: return WEST;
-				default: throw new IllegalStateException();
-			}
-		}
 	}
 
 	static class RepairDroid {
