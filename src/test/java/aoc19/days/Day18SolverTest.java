@@ -3,27 +3,10 @@ package aoc19.days;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class Day18SolverTest {
-
-	@Test
-	void testSmallMaze() {
-		List<String> smallMaze = Arrays.asList(
-				"#########",
-				"#b.A.@.a#",
-				"#########"
-		);
-		Day18Solver.Maze maze = new Day18Solver.Maze(smallMaze, 'b');
-		maze.checkPaths();
-		assertEquals(2, maze.getPathLength('@', 'a'));
-		assertEquals(0b0, maze.getPathMask('@', 'a'));
-		assertEquals(6, maze.getPathLength('a', 'b'));
-		assertEquals(0b1, maze.getPathMask('a', 'b'));
-		assertEquals(8, maze.getTotalCollectionDistance());
-	}
 
 	private int getCollectionDistance(char maxKey, String... mazeStrings) {
 		Day18Solver.Maze maze = new Day18Solver.Maze(Arrays.asList(mazeStrings), maxKey);
@@ -31,7 +14,7 @@ public class Day18SolverTest {
 	}
 
 	@Test
-	void testMediumMaze1() {
+	void testSoloMazes() {
 		assertEquals(86, getCollectionDistance('f',
 				"########################",
 				"#f.D.E.e.C.b.A.@.a.B.c.#",
@@ -39,10 +22,6 @@ public class Day18SolverTest {
 				"#d.....................#",
 				"########################")
 		);
-	}
-
-	@Test
-	void testMediumMaze2() {
 		assertEquals(132, getCollectionDistance('g',
 				"########################",
 				"#...............b.C.D.f#",
@@ -50,10 +29,6 @@ public class Day18SolverTest {
 				"#.....@.a.B.c.d.A.e.F.g#",
 				"########################"
 		));
-	}
-
-	@Test
-	void testMediumMaze3() {
 		assertEquals(136, getCollectionDistance('p',
 				"#################",
 				"#i.G..c...e..H.p#",
@@ -65,10 +40,6 @@ public class Day18SolverTest {
 				"#l.F..d...h..C.m#",
 				"#################"
 		));
-	}
-
-	@Test
-	void testMediumMaze4() {
 		assertEquals(81, getCollectionDistance('i',
 				"########################",
 				"#@..............ac.GI.b#",
@@ -79,15 +50,9 @@ public class Day18SolverTest {
 		));
 	}
 
-
-	private int getMultiCollectionDistance(char maxKey, String... mazeStrings) {
-		Day18SolverPart2.Maze maze = new Day18SolverPart2.Maze(Arrays.asList(mazeStrings), maxKey);
-		return maze.getTotalCollectionDistance();
-	}
-
 	@Test
-	void testMultiMaze1() {
-		assertEquals(8, getMultiCollectionDistance('d',
+	void testMultiMazes() {
+		assertEquals(8, getCollectionDistance('d',
 				"#######",
 				"#a.#Cd#",
 				"##@#%##",
@@ -96,11 +61,7 @@ public class Day18SolverTest {
 				"#cB#Ab#",
 				"#######"
 		));
-	}
-
-	@Test
-	void testMultiMaze2() {
-		assertEquals(24, getMultiCollectionDistance('d',
+		assertEquals(24, getCollectionDistance('d',
 				"###############",
 				"#d.ABC.#.....a#",
 				"######@#%######",
@@ -109,11 +70,7 @@ public class Day18SolverTest {
 				"#b.....#.....c#",
 				"###############"
 		));
-	}
-
-	@Test
-	void testMultiMaze3() {
-		assertEquals(32, getMultiCollectionDistance('l',
+		assertEquals(32, getCollectionDistance('l',
 				"#############",
 				"#DcBa.#.GhKl#",
 				"#.###@#%#I###",
@@ -122,11 +79,7 @@ public class Day18SolverTest {
 				"#fEbA.#.FgHi#",
 				"#############"
 		));
-	}
-
-	@Test
-	void testMultiMaze4() {
-		assertEquals(72, getMultiCollectionDistance('o',
+		assertEquals(72, getCollectionDistance('o',
 				"#############",
 				"#g#f.D#..h#l#",
 				"#F###e#E###.#",
@@ -138,5 +91,7 @@ public class Day18SolverTest {
 				"#############"
 		));
 	}
+
+
 
 }

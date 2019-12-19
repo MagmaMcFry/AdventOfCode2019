@@ -5,26 +5,38 @@ import aoc19.util.FileReader;
 import aoc19.util.I2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 public class Day18Solver {
 	public static void main(String[] args) {
 		solvePart1();
-		//solvePart2();
+		solvePart2();
 	}
 
 	private static void solvePart1() {
-		Maze maze = new Maze(getMazeStrings(), 'z');
-		System.out.println("Read maze");
-		maze.checkPaths();
-		System.out.println("Found and checked paths");
-		System.out.println("Collection distance: " +maze.getTotalCollectionDistance());
+		Maze maze = new Maze(getMazeStrings1(), 'z');
+		System.out.println("Collection distance in maze 1: " + maze.getTotalCollectionDistance());
 	}
 
-	private static List<String> getMazeStrings() {
+	private static void solvePart2() {
+		Maze maze = new Maze(getMazeStrings2(), 'z');
+		System.out.println("Collection distance in maze 2: " + maze.getTotalCollectionDistance());
+	}
+
+	private static List<String> getMazeStrings1() {
 		return FileReader.readLines("/day18/maze.txt");
+	}
+
+	private static List<String> getMazeStrings2() {
+		return FileReader.readLines("/day18/maze2.txt");
 	}
 
 	static char[][] toCharArray(List<String> mazeStr) {
@@ -34,11 +46,13 @@ public class Day18Solver {
 	static class Maze {
 		private final int firstKey, lastKey, firstLock, lastLock;
 		private final int numKeys;
+		private final int totalMask;
 		private final Map<Character, I2> objectPositions;
 		private final char[][] array;
 		private final HashMap<Character, HashMap<Character, Integer>> pathMasks = new HashMap<>();
 		private final HashMap<Character, HashMap<Character, Integer>> pathLengths = new HashMap<>();
 		private boolean pathsChecked = false;
+		private final int[] robotPartsByKeyIndex;
 
 		public Maze(List<String> mazeStrings, char lastKeyChar) {
 			this.lastKey = lastKeyChar;
@@ -46,9 +60,14 @@ public class Day18Solver {
 			firstLock = 'A';
 			lastLock = firstLock - firstKey + lastKey;
 			numKeys = 1 + lastKey - firstKey;
+			robotPartsByKeyIndex = new int[numKeys];
+			totalMask = (1 << numKeys) - 1;
 			this.array = toCharArray(mazeStrings);
 
 			objectPositions = new HashMap<>();
+			for (char c : robotChars) {
+				objectPositions.put(c, new I2(0, 0));
+			}
 			for (int y = 0; y < array.length; ++y) {
 				char[] row = array[y];
 				for (int x = 0; x < row.length; x++) {
@@ -60,74 +79,19 @@ public class Day18Solver {
 			}
 		}
 
-		public int getTotalCollectionDistance() {
-			checkPaths();
-			Map<Character, Map<Integer, Integer>> distanceByLastKeyAndMasks = new HashMap<>();
-			for (int c = firstKey; c <= lastKey; ++c) {
-				distanceByLastKeyAndMasks.computeIfAbsent((char)c, HashMap::new);
-			}
-			int maskLimit = 1 << numKeys;
-			for (int firstEverKeyIndex = 0; firstEverKeyIndex < numKeys; ++firstEverKeyIndex) {
-
-				char firstEverKey = (char) (firstEverKeyIndex + firstKey);
-				if (getPathMask('@', firstEverKey) == 0) {
-					distanceByLastKeyAndMasks.get(firstEverKey).put(1 << firstEverKeyIndex, getPathLength('@', firstEverKey));
-				}
-			}
-
-			for (int currentMask = 1; currentMask < maskLimit; ++currentMask) {
-				if ((currentMask & 0xfffff) == 0) {
-					System.out.println("Current mask: " + Integer.toString(currentMask, 2));
-				}
-				CURRENT_KEY:
-				for (int currentKeyIndex = 0; currentKeyIndex < numKeys; ++currentKeyIndex) {
-					if ((currentMask & (1 << currentKeyIndex)) == 0) continue CURRENT_KEY;
-					// Current key is being gathered
-					int prevMask = currentMask & ~(1 << currentKeyIndex);
-					char currentKey = (char) (firstKey + currentKeyIndex);
-					PREV_KEY:
-					for (int prevKeyIndex = 0; prevKeyIndex < numKeys; ++prevKeyIndex) {
-						if ((currentMask & (1 << prevKeyIndex)) == 0) continue PREV_KEY;
-						// Previous key is already gathered
-						char prevKey = (char) (firstKey + prevKeyIndex);
-						if ((prevMask | getPathMask(prevKey, currentKey)) != prevMask) {
-							// Previous keys were insufficient to gather current key
-							continue PREV_KEY;
-						}
-						Integer prevLength = distanceByLastKeyAndMasks.get(prevKey).get(prevMask);
-						if (prevLength == null) {
-							// Previous key was impossible to get last
-							continue PREV_KEY;
-						}
-						int newCurrentLength = prevLength + getPathLength(prevKey, currentKey);
-						Integer oldCurrentLength = distanceByLastKeyAndMasks.get(currentKey).get(currentMask);
-						if (oldCurrentLength == null || oldCurrentLength > newCurrentLength) {
-//							System.out.println("Going from " + prevKey + " to " + currentKey + " using key mask " +
-//									Integer.toString(prevMask + maskLimit, 2).substring(1)
-//									+ " -> " + Integer.toString(currentMask + maskLimit, 2).substring(1)
-//							);
-							distanceByLastKeyAndMasks.get(currentKey).put(currentMask, newCurrentLength);
-						}
-					}
-				}
-			}
-			int bestLength = Integer.MAX_VALUE;
-			for (int finalKey = firstKey; finalKey <= lastKey; ++finalKey) {
-				Integer distanceGettingThatKeyLast = distanceByLastKeyAndMasks.get((char)finalKey).get(maskLimit-1);
-				if (distanceGettingThatKeyLast != null && distanceGettingThatKeyLast < bestLength) {
-					bestLength = distanceGettingThatKeyLast;
-				}
-			}
-			return bestLength;
-		}
-
 		void checkPaths() {
 			if (pathsChecked) return;
-			for (int end = 0; end < numKeys; ++end) {
-				char endKey = (char) ('a' + end);
-				checkPath('@', endKey);
-				for (int start = 0; start < numKeys; ++start) {
-					char startKey = (char) ('a' + start);
+			for (int endKeyIndex = 0; endKeyIndex < numKeys; ++endKeyIndex) {
+				char endKey = (char) ('a' + endKeyIndex);
+				for (int i = 0; i < robotChars.length; ++i) {
+					char r = robotChars[i];
+					checkPath(r, endKey);
+					if (hasPath(r, endKey)) {
+						robotPartsByKeyIndex[endKeyIndex] = i;
+					}
+				}
+				for (int startKeyIndex = 0; startKeyIndex < numKeys; ++startKeyIndex) {
+					char startKey = (char) ('a' + startKeyIndex);
 					checkPath(startKey, endKey);
 				}
 			}
@@ -135,12 +99,16 @@ public class Day18Solver {
 		}
 
 		void checkPath(char startItem, char endItem) {
+			pathLengths.computeIfAbsent(startItem, HashMap::new);
+			pathMasks.computeIfAbsent(startItem, HashMap::new);
 			if (startItem == endItem) {
-				pathLengths.computeIfAbsent(startItem, HashMap::new).put(endItem, 0);
-				pathMasks.computeIfAbsent(startItem, HashMap::new).put(endItem, 1 << numKeys); // Make self-path impossible to use
+				// Ignore self-paths
 				return;
-			};
+			}
 			List<Character> foundPath = findPathBetween(startItem, endItem);
+			if (foundPath == null) {
+				return;
+			}
 			int mask = 0;
 			for (char c : foundPath) {
 				if (isLock(c)) {
@@ -149,8 +117,8 @@ public class Day18Solver {
 					mask |= 1 << (c - firstKey); // Optimization: Can't go through keys without collecting them
 				}
 			}
-			pathLengths.computeIfAbsent(startItem, HashMap::new).put(endItem, 1+foundPath.size());
-			pathMasks.computeIfAbsent(startItem, HashMap::new).put(endItem, mask);
+			pathLengths.get(startItem).put(endItem, 1 + foundPath.size());
+			pathMasks.get(startItem).put(endItem, mask);
 		}
 
 		List<Character> findPathBetween(char startItem, char endItem) {
@@ -170,13 +138,14 @@ public class Day18Solver {
 			prevNeighbors.put(start, start);
 			while (!openSet.isEmpty()) {
 				List<I2> newOpenSet = new ArrayList<>();
+				EXPLORING:
 				for (I2 currentPos : openSet) {
+					if (array[currentPos.y][currentPos.x] == '#') {
+						continue EXPLORING;
+					}
 					TURNING:
 					for (Direction dir : Direction.values()) {
 						I2 neighborPos = new I2(currentPos.x + dir.dx, currentPos.y + dir.dy);
-						if (array[neighborPos.y][neighborPos.x] == '#') {
-							continue TURNING;
-						}
 						if (prevNeighbors.containsKey(neighborPos)) {
 							continue TURNING;
 						}
@@ -194,7 +163,7 @@ public class Day18Solver {
 				}
 				openSet = newOpenSet;
 			}
-			throw new IllegalStateException("Could not find a path :(");
+			return null;
 		}
 
 		private boolean isKey(char val) {
@@ -206,15 +175,19 @@ public class Day18Solver {
 		}
 
 		private boolean isAgent(char val) {
-			return val == '@';
+			switch (val) {
+				case '@':
+				case '%':
+				case '$':
+				case '&':
+					return true;
+				default:
+					return false;
+			}
 		}
 
-		private char getLock(char key) {
-			return (char) (key + 'A' - 'a');
-		}
-
-		private char getKey(char lock) {
-			return (char) (lock + 'A' - 'a');
+		boolean hasPath(char start, char end) {
+			return pathLengths.get(start).containsKey(end);
 		}
 
 		int getPathLength(char start, char end) {
@@ -223,6 +196,135 @@ public class Day18Solver {
 
 		int getPathMask(char start, char end) {
 			return pathMasks.get(start).get(end);
+		}
+
+		static char[] robotChars = {'@', '%', '$', '&'};
+
+		int getTotalCollectionDistance() {
+			checkPaths();
+			RobotState initialState = new RobotState(0, robotChars, 0);
+			RobotState finalState = StatePathfinder.findClosestGoalState(initialState);
+			if (finalState == null) return -1; // Final state not reachable
+			return finalState.distance;
+		}
+
+		class RobotState implements State<RobotState> {
+			private final int keyMask;
+			private final char[] robotPositions;
+			private final int distance;
+
+			RobotState(int keyMask, char[] robotPositions, int distance) {
+				this.keyMask = keyMask;
+				this.robotPositions = robotPositions;
+				this.distance = distance;
+			}
+
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				RobotState that = (RobotState) o;
+				return keyMask == that.keyMask &&
+						distance == that.distance &&
+						Arrays.equals(robotPositions, that.robotPositions);
+			}
+
+			@Override
+			public int hashCode() {
+				int result = Objects.hash(keyMask, distance);
+				result = 31 * result + Arrays.hashCode(robotPositions);
+				return result;
+			}
+
+			@Override
+			public boolean isDone() {
+				return keyMask == totalMask;
+			}
+
+			@Override
+			public List<RobotState> getNextStates() {
+				List<RobotState> nextList = new ArrayList<>();
+				for (int nextKeyIndex = 0; nextKeyIndex < numKeys; ++nextKeyIndex) {
+					int nextKeyMask = (1 << nextKeyIndex);
+					char nextKey = (char) (nextKeyIndex + firstKey);
+					if ((keyMask & nextKeyMask) != 0) {
+						continue; // We got that key already
+					}
+					int robotToBeMoved = robotPartsByKeyIndex[nextKeyIndex];
+					if (!hasPath(robotPositions[robotToBeMoved], nextKey)) {
+						System.out.println("Broken");
+					}
+					if ((keyMask | getPathMask(robotPositions[robotToBeMoved], nextKey)) != keyMask) {
+						continue; // We can't get that key yet
+					}
+					char[] newRobotPositions = Arrays.copyOf(robotPositions, 4);
+					newRobotPositions[robotToBeMoved] = nextKey;
+					nextList.add(new RobotState(keyMask | nextKeyMask,
+							newRobotPositions,
+							distance + getPathLength(robotPositions[robotToBeMoved], nextKey)
+					));
+				}
+				return nextList;
+			}
+
+			@Override
+			public RobotState reduce() {
+				return new RobotState(keyMask, robotPositions, 0);
+			}
+
+			@Override
+			public int compareTo(State o) {
+				if (o.getClass() != RobotState.class) return -2;
+				RobotState that = (RobotState) o;
+				return comparator.compare(this, that);
+			}
+
+			@Override
+			public String toString() {
+				return "RobotState{" +
+						"keyMask=" + Integer.toString(keyMask + (1 << numKeys), 2).substring(1) +
+						", distance=" + distance +
+						'}';
+			}
+		}
+
+		private static Comparator<RobotState> comparator = Comparator.comparingInt((RobotState r)->r.distance).thenComparing(r -> r.keyMask);
+	}
+
+	interface State<T extends State<T>> extends Comparable<State<T>> {
+		boolean isDone();
+
+		List<T> getNextStates();
+		T reduce();
+	}
+
+	static class StatePathfinder {
+
+		private static <T extends State<T>> T findClosestGoalState(T initialState) {
+			int stateCount = 0;
+			PriorityQueue<T> states = new PriorityQueue<>(); // What kind of dumb priority queue sorts objects by their natural order????
+			Set<T> completedStates = new HashSet<>(); // Extra data structure to check duplicates because the PriorityQueue can't do it
+			states.add(initialState);
+			while (!states.isEmpty()) {
+				++stateCount;
+				T state = states.poll();
+				if ((stateCount & 0xfffff) == 0) {
+					System.out.println("States processed so far: " + stateCount);
+					System.out.println("Waiting states: " + states.size());
+					System.out.println("Current state: " + state.toString());
+				}
+				T reducedState = state.reduce();
+				if (completedStates.contains(reducedState)) {
+					continue;
+				}
+				completedStates.add(reducedState);
+				if (state.isDone()) {
+					return state;
+				}
+				List<T> nextStates = state.getNextStates();
+				states.addAll(nextStates);
+			}
+			return null;
 		}
 	}
 }
