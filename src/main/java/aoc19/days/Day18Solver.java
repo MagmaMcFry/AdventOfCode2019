@@ -1,19 +1,17 @@
 package aoc19.days;
 
+import aoc19.util.DijkstraPathfinder;
 import aoc19.util.Direction;
 import aoc19.util.FileReader;
 import aoc19.util.I2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.function.BiConsumer;
 
 public class Day18Solver {
 	public static void main(String[] args) {
@@ -202,21 +200,19 @@ public class Day18Solver {
 
 		int getTotalCollectionDistance() {
 			checkPaths();
-			RobotState initialState = new RobotState(0, robotChars, 0);
-			RobotState finalState = StatePathfinder.findClosestGoalState(initialState);
-			if (finalState == null) return -1; // Final state not reachable
-			return finalState.distance;
+			RobotState initialState = new RobotState(0, robotChars);
+			DijkstraPathfinder.StateAndDistance<RobotState> finalStateAndDistance = DijkstraPathfinder.findClosestGoalState(initialState);
+			if (finalStateAndDistance == null) return -1; // Final state not reachable
+			return finalStateAndDistance.distance;
 		}
 
-		class RobotState implements State<RobotState> {
+		class RobotState implements DijkstraPathfinder.State<RobotState> {
 			private final int keyMask;
 			private final char[] robotPositions;
-			private final int distance;
 
-			RobotState(int keyMask, char[] robotPositions, int distance) {
+			RobotState(int keyMask, char[] robotPositions) {
 				this.keyMask = keyMask;
 				this.robotPositions = robotPositions;
-				this.distance = distance;
 			}
 
 			@Override
@@ -224,16 +220,12 @@ public class Day18Solver {
 				if (this == o) return true;
 				if (o == null || getClass() != o.getClass()) return false;
 				RobotState that = (RobotState) o;
-				return keyMask == that.keyMask &&
-						distance == that.distance &&
-						Arrays.equals(robotPositions, that.robotPositions);
+				return keyMask == that.keyMask && Arrays.equals(robotPositions, that.robotPositions);
 			}
 
 			@Override
 			public int hashCode() {
-				int result = Objects.hash(keyMask, distance);
-				result = 31 * result + Arrays.hashCode(robotPositions);
-				return result;
+				return 31 * Arrays.hashCode(robotPositions) + Objects.hash(keyMask);
 			}
 
 			@Override
@@ -242,8 +234,7 @@ public class Day18Solver {
 			}
 
 			@Override
-			public List<RobotState> getNextStates() {
-				List<RobotState> nextList = new ArrayList<>();
+			public void getNextStates(BiConsumer<RobotState, Integer> output) {
 				for (int nextKeyIndex = 0; nextKeyIndex < numKeys; ++nextKeyIndex) {
 					int nextKeyMask = (1 << nextKeyIndex);
 					char nextKey = (char) (nextKeyIndex + firstKey);
@@ -259,72 +250,12 @@ public class Day18Solver {
 					}
 					char[] newRobotPositions = Arrays.copyOf(robotPositions, 4);
 					newRobotPositions[robotToBeMoved] = nextKey;
-					nextList.add(new RobotState(keyMask | nextKeyMask,
-							newRobotPositions,
-							distance + getPathLength(robotPositions[robotToBeMoved], nextKey)
-					));
+					output.accept(
+							new RobotState(keyMask | nextKeyMask, newRobotPositions),
+							getPathLength(robotPositions[robotToBeMoved], nextKey)
+					);
 				}
-				return nextList;
 			}
-
-			@Override
-			public RobotState reduce() {
-				return new RobotState(keyMask, robotPositions, 0);
-			}
-
-			@Override
-			public int compareTo(State o) {
-				if (o.getClass() != RobotState.class) return -2;
-				RobotState that = (RobotState) o;
-				return comparator.compare(this, that);
-			}
-
-			@Override
-			public String toString() {
-				return "RobotState{" +
-						"keyMask=" + Integer.toString(keyMask + (1 << numKeys), 2).substring(1) +
-						", distance=" + distance +
-						'}';
-			}
-		}
-
-		private static Comparator<RobotState> comparator = Comparator.comparingInt((RobotState r)->r.distance).thenComparing(r -> r.keyMask);
-	}
-
-	interface State<T extends State<T>> extends Comparable<State<T>> {
-		boolean isDone();
-
-		List<T> getNextStates();
-		T reduce();
-	}
-
-	static class StatePathfinder {
-
-		private static <T extends State<T>> T findClosestGoalState(T initialState) {
-			int stateCount = 0;
-			PriorityQueue<T> states = new PriorityQueue<>(); // What kind of dumb priority queue sorts objects by their natural order????
-			Set<T> completedStates = new HashSet<>(); // Extra data structure to check duplicates because the PriorityQueue can't do it
-			states.add(initialState);
-			while (!states.isEmpty()) {
-				++stateCount;
-				T state = states.poll();
-				if ((stateCount & 0xfffff) == 0) {
-					System.out.println("States processed so far: " + stateCount);
-					System.out.println("Waiting states: " + states.size());
-					System.out.println("Current state: " + state.toString());
-				}
-				T reducedState = state.reduce();
-				if (completedStates.contains(reducedState)) {
-					continue;
-				}
-				completedStates.add(reducedState);
-				if (state.isDone()) {
-					return state;
-				}
-				List<T> nextStates = state.getNextStates();
-				states.addAll(nextStates);
-			}
-			return null;
 		}
 	}
 }

@@ -12,6 +12,7 @@ public class Day19Solver {
 	}
 
 	private static long[] code = null;
+
 	private static long[] getCode() {
 		if (code == null) {
 			code = FileReader.readLongcode("/day19/code.txt");
@@ -47,14 +48,14 @@ public class Day19Solver {
 		for (int x = 0; x <= 50; ++x) {
 			if (scanPos(x, 50) == 1) {
 				if (minSlopeTimes50 == 0) {
-					minSlopeTimes50 = x-1;
+					minSlopeTimes50 = x - 1;
 				}
-				maxSlopeTimes50 = x+1;
+				maxSlopeTimes50 = x + 1;
 			}
 		}
 		for (int y = 0; y < 10000; ++y) {
-			for (int x = ((y+99)*minSlopeTimes50)/50; 50*(x+99) < maxSlopeTimes50*y; ++x) { // Only look for x in a certain range
-				if (scanPos(x+99, y) * scanPos(x,y+99) > 0) { // Only need to check these two corners
+			for (int x = ((y + 99) * minSlopeTimes50) / 50; 50 * (x + 99) < maxSlopeTimes50 * y; ++x) { // Only look for x in a certain range
+				if (scanPos(x + 99, y) * scanPos(x, y + 99) > 0) { // Only need to check these two corners
 					System.out.println("Found the ship at location code " + (10000 * x + y));
 					return;
 				}

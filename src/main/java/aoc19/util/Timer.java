@@ -3,6 +3,10 @@ package aoc19.util;
 import java.util.Locale;
 
 public class Timer {
+	public static void timeThis(Runnable r) {
+		timeThis(r, 1);
+	}
+
 	public static void timeThis(Runnable r, int tries) {
 		long ns_start = System.nanoTime();
 		for (int i = 0; i < tries; ++i) {
