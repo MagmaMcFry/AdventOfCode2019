@@ -13,7 +13,9 @@ public class Longcode {
 	private LongcodeInput input = new LongcodeInput() {
 		@Override public boolean hasNextInput() { return false; } @Override public long getNextInput() { return 0; }
 	};
-	private LongConsumer output;
+	private LongcodeOutput output = new LongcodeOutput() {
+		@Override public boolean acceptsNextOutput() { return false; } @Override public void setNextOutput(long val) {}
+	};
 	private boolean done = false;
 	private boolean broken = false;
 
@@ -67,7 +69,14 @@ public class Longcode {
 
 				// OUT
 				case 4:
-					nextOutput(getCode(op1)); pos += 2; break;
+					if (output.acceptsNextOutput()) {
+						output.setNextOutput(getCode(op1));
+						pos += 2;
+						break;
+					} else {
+						// Waiting on output
+						break LOOP;
+					}
 
 				// JNZ
 				case 5: if (getCode(op1) != 0) { pos = getCode(op2); } else { pos += 3; } break;
@@ -87,7 +96,6 @@ public class Longcode {
 
 				// HCF
 				default:
-					nextOutput(-999);
 					broken = true;
 					done = true;
 					break LOOP;
@@ -151,19 +159,33 @@ public class Longcode {
 		};
 	}
 
-	public void setOutputMethod(LongConsumer output) {
-		this.output = output;
+	public void setOutputMethod(LongcodeOutput outputMethod) {
+		this.output = outputMethod;
+	}
+
+	public void setOutputMethod(LongConsumer outputMethod) {
+		this.output = new LongcodeOutput() {
+			@Override
+			public boolean acceptsNextOutput() {
+				return true;
+			}
+
+			@Override
+			public void setNextOutput(long val) {
+				outputMethod.accept(val);
+			}
+		};
 	}
 
 	public List<Long> setOutputList() {
 		List<Long> list = new ArrayList<>();
-		this.output = list::add;
+		setOutputMethod(list::add);
 		return list;
 	}
 
 	public long[] setOutputCollector() {
 		long[] out = new long[1];
-		this.output = (i) -> out[0] = i;
+		setOutputMethod((i) -> out[0] = i);
 		return out;
 	}
 
@@ -197,6 +219,23 @@ public class Longcode {
 		});
 	}
 
+	public long[] setOutputCounter(long limit) {
+		long[] counter = new long[1];
+		this.output = new LongcodeOutput() {
+
+			@Override
+			public boolean acceptsNextOutput() {
+				return counter[0] < limit;
+			}
+
+			@Override
+			public void setNextOutput(long output) {
+				++counter[0];
+			}
+		};
+		return counter;
+	}
+
 	public boolean isDone() {
 		return done;
 	}
@@ -211,10 +250,6 @@ public class Longcode {
 
 	public long getRuntime() {
 		return runtime;
-	}
-
-	private void nextOutput(long val) {
-		output.accept(val);
 	}
 
 	public static long runAndReturnFirstElement(long[] code) {
@@ -242,5 +277,10 @@ public class Longcode {
 	public interface LongcodeInput {
 		boolean hasNextInput();
 		long getNextInput();
+	}
+
+	public interface LongcodeOutput {
+		boolean acceptsNextOutput();
+		void setNextOutput(long output);
 	}
 }
