@@ -23,85 +23,89 @@ public class Longcode {
 		this.code = code;
 	}
 
-	public void runCode() {
-		LOOP: while (true) {
-			int rawOpcode = (int) getCode(pos);
-			long op1, op2, op3;
-			int pureOpcode = rawOpcode % 100;
-			int mode1 = (rawOpcode / 100) % 10;
-			int mode2 = (rawOpcode / 1000) % 10;
-			int mode3 = (rawOpcode / 10000) % 10;
-			switch (mode1) {
-				case 0: op1 = getCode(pos+1); break;
-				case 1: op1 = pos+1; break;
-				case 2: op1 = base+getCode(pos+1); break;
-				default: op1 = -1;
-			}
-			switch (mode2) {
-				case 0: op2 = getCode(pos+2); break;
-				case 1: op2 = pos+2; break;
-				case 2: op2 = base+getCode(pos+2); break;
-				default: op2 = -2;
-			}
-			switch (mode3) {
-				case 0: op3 = getCode(pos+3); break;
-				case 1: op3 = pos+3; break;
-				case 2: op3 = base+getCode(pos+3); break;
-				default: op3 = -3;
-			}
-			switch (pureOpcode) {
-				// ADD
-				case 1: setCode(op3, getCode(op1) + getCode(op2)); pos += 4; break;
+	/** Returns whether the machine should halt after this step */
+	public boolean step() {
+		int rawOpcode = (int) getCode(pos);
+		long op1, op2, op3;
+		int pureOpcode = rawOpcode % 100;
+		int mode1 = (rawOpcode / 100) % 10;
+		int mode2 = (rawOpcode / 1000) % 10;
+		int mode3 = (rawOpcode / 10000) % 10;
+		switch (mode1) {
+			case 0: op1 = getCode(pos+1); break;
+			case 1: op1 = pos+1; break;
+			case 2: op1 = base+getCode(pos+1); break;
+			default: op1 = -1;
+		}
+		switch (mode2) {
+			case 0: op2 = getCode(pos+2); break;
+			case 1: op2 = pos+2; break;
+			case 2: op2 = base+getCode(pos+2); break;
+			default: op2 = -2;
+		}
+		switch (mode3) {
+			case 0: op3 = getCode(pos+3); break;
+			case 1: op3 = pos+3; break;
+			case 2: op3 = base+getCode(pos+3); break;
+			default: op3 = -3;
+		}
+		switch (pureOpcode) {
+			// ADD
+			case 1: setCode(op3, getCode(op1) + getCode(op2)); pos += 4; break;
 
-				// MUL
-				case 2: setCode(op3, getCode(op1) * getCode(op2)); pos += 4; break;
+			// MUL
+			case 2: setCode(op3, getCode(op1) * getCode(op2)); pos += 4; break;
 
-				// IN
-				case 3:
-					if (input.hasNextInput()) {
-						setCode(op1, input.getNextInput());
-						pos += 2;
-						break;
-					} else {
-						// Waiting on input
-						break LOOP;
-					}
+			// IN
+			case 3:
+				if (input.hasNextInput()) {
+					setCode(op1, input.getNextInput());
+					pos += 2;
+					break;
+				} else {
+					// Waiting on input
+					return true;
+				}
 
 				// OUT
-				case 4:
-					if (output.acceptsNextOutput()) {
-						output.setNextOutput(getCode(op1));
-						pos += 2;
-						break;
-					} else {
-						// Waiting on output
-						break LOOP;
-					}
+			case 4:
+				if (output.acceptsNextOutput()) {
+					output.setNextOutput(getCode(op1));
+					pos += 2;
+					break;
+				} else {
+					// Waiting on output
+					return true;
+				}
 
 				// JNZ
-				case 5: if (getCode(op1) != 0) { pos = getCode(op2); } else { pos += 3; } break;
-				// JEZ
-				case 6: if (getCode(op1) == 0) { pos = getCode(op2); } else { pos += 3; } break;
+			case 5: if (getCode(op1) != 0) { pos = getCode(op2); } else { pos += 3; } break;
+			// JEZ
+			case 6: if (getCode(op1) == 0) { pos = getCode(op2); } else { pos += 3; } break;
 
-				// TLT
-				case 7: setCode(op3, (getCode(op1) < getCode(op2)) ? 1 : 0); pos += 4; break;
-				// TEQ
-				case 8: setCode(op3, (getCode(op1) == getCode(op2)) ? 1 : 0); pos += 4; break;
+			// TLT
+			case 7: setCode(op3, (getCode(op1) < getCode(op2)) ? 1 : 0); pos += 4; break;
+			// TEQ
+			case 8: setCode(op3, (getCode(op1) == getCode(op2)) ? 1 : 0); pos += 4; break;
 
-				// OFFSET
-				case 9: base += getCode(op1); pos += 2; break;
+			// OFFSET
+			case 9: base += getCode(op1); pos += 2; break;
 
-				// HALT
-				case 99: done = true; break LOOP;
+			// HALT
+			case 99: done = true; return true;
 
-				// HCF
-				default:
-					broken = true;
-					done = true;
-					break LOOP;
-			}
-			++runtime;
+			// HCF
+			default:
+				broken = true;
+				done = true;
+				return true;
 		}
+		++runtime;
+		return false;
+	}
+
+	public void runCode() {
+		while (!step()) {}
 	}
 
 	private long getCode(long addr) {
