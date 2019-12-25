@@ -1,6 +1,7 @@
 package aoc19;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -21,6 +22,17 @@ public class Longcode {
 
 	public Longcode(long[] code) {
 		this.code = code;
+	}
+
+	public Longcode(Longcode original) {
+		this.code = Arrays.copyOf(original.code, original.code.length);
+		this.pos = original.pos;
+		this.base = original.base;
+		this.runtime = original.runtime;
+		this.input = original.input;
+		this.output = original.output;
+		this.done = original.done;
+		this.broken = original.broken;
 	}
 
 	/** Returns whether the machine should halt after this step */
@@ -256,6 +268,10 @@ public class Longcode {
 		return runtime;
 	}
 
+	public int getMemSize() {
+		return code.length;
+	}
+
 	public static long runAndReturnFirstElement(long[] code) {
 		Longcode longcode = new Longcode(code);
 		longcode.runCode();
@@ -278,12 +294,17 @@ public class Longcode {
 		return output.stream().mapToLong(i->i).toArray();
 	}
 
+	public Longcode backup() {
+		return new Longcode(this);
+	}
+
 	public interface LongcodeInput {
+
 		boolean hasNextInput();
 		long getNextInput();
 	}
-
 	public interface LongcodeOutput {
+
 		boolean acceptsNextOutput();
 		void setNextOutput(long output);
 	}
